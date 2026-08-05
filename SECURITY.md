@@ -87,8 +87,14 @@ The fix does not change what is matched. The bounded prefix is used *only* in
 `COMPARATOR_TRIM`, the one pattern applied unanchored to a whole range string;
 every other pattern is anchored and runs against a single short token, so it
 keeps node-semver's grammar exactly, including loose mode accepting an
-arbitrarily long prefix. The 104,560-case differential suite is what
+arbitrarily long prefix. The 119,796-case differential suite is what
 establishes that, and it covers this boundary explicitly.
+
+**The differential oracle is fuzzed.** `test/fuzz.test.ts` generates versions,
+ranges, mutations and garbage from a seeded PRNG and requires tinysemver and
+node-semver to agree, running on every commit and soaking 4 million inputs
+nightly across four shards. Seeds are printed so any divergence reproduces
+exactly.
 
 This behaviour is inherited from node-semver rather than introduced here; it has
 not been reported upstream by this project.
