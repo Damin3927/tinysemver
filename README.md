@@ -101,10 +101,12 @@ If you find any other divergence, that is a bug — please
 
 ## Security
 
-Zero runtime dependencies. Nothing executes on install. Published from CI with
-[trusted publishing](https://docs.npmjs.com/trusted-publishers) over OIDC, so no
-npm token exists to be stolen, and every release carries a signed
-[provenance attestation](https://docs.npmjs.com/generating-provenance-statements):
+Zero runtime dependencies. Nothing executes on install. Releases are published
+from CI using [trusted publishing](https://docs.npmjs.com/trusted-publishers)
+over OIDC — no npm token exists in this repository to be stolen — and carry a
+signed
+[provenance attestation](https://docs.npmjs.com/generating-provenance-statements)
+linking the tarball to the commit that produced it:
 
 ```sh
 npm audit signatures

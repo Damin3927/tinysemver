@@ -30,9 +30,16 @@ OIDC: the release workflow mints a short-lived, workflow-scoped credential. No
 long-lived token is stored in the repository, in GitHub secrets, or on a
 maintainer's machine, so there is nothing to exfiltrate or rotate.
 
-**Every release is attested.** Published with `--provenance`, so npm records a
+**Releases are attested.** Published with `--provenance`, so npm records a
 signed, verifiable link from the tarball back to the exact commit and workflow
 run that produced it. Verify with `npm audit signatures`.
+
+> One exception, stated plainly: `1.0.0` was published from a maintainer
+> machine and therefore has no provenance. npm only lets a trusted publisher be
+> configured on a package that already exists, so a brand-new name cannot have
+> an attested first release. `1.0.0` exists to claim the name and enable that
+> configuration; every version after it is published by the release workflow
+> with provenance.
 
 **The published tarball is inspected, not trusted.** CI builds the tarball and
 fails on any file outside a strict allowlist — no source maps, no dotfiles, no
