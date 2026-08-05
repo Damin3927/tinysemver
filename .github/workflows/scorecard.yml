@@ -29,12 +29,20 @@ jobs:
           results_format: sarif
           publish_results: true
 
+      # Kept as an artifact rather than uploaded to code scanning.
+      #
+      # Scorecard reports repository *process* signals — how old the repo is,
+      # whether a second person approved the last PR — and several are rated
+      # `high`. Feeding those into the code scanning alert stream put them
+      # behind the same merge gate as real code findings, where they blocked
+      # every pull request and could never be resolved: `Maintained` needs the
+      # repo to age, `CodeReview` and `BranchProtection` need an approver a
+      # solo repository cannot supply.
+      #
+      # The score is still worth watching, so the run stays. It just does not
+      # get to speak with the authority of a vulnerability.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: scorecard-results
           path: results.sarif
-          retention-days: 5
-
-      - uses: github/codeql-action/upload-sarif@18420e3271f74589575af831a523c833acda327f # codeql-bundle-v2.26.2
-        with:
-          sarif_file: results.sarif
+          retention-days: 30
