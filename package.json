@@ -1,5 +1,5 @@
 {
-  "name": "tinysemver",
+  "name": "tinyver",
   "version": "1.0.0",
   "description": "A tiny, zero-dependency, ESM-first drop-in replacement for semver. Same API, same semantics, a third of the size.",
   "keywords": [
@@ -14,11 +14,11 @@
     "zero-dependency",
     "tree-shakeable"
   ],
-  "homepage": "https://github.com/Damin3927/tinysemver#readme",
-  "bugs": "https://github.com/Damin3927/tinysemver/issues",
+  "homepage": "https://github.com/Damin3927/tinyver#readme",
+  "bugs": "https://github.com/Damin3927/tinyver/issues",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Damin3927/tinysemver.git"
+    "url": "git+https://github.com/Damin3927/tinyver.git"
   },
   "license": "MIT",
   "author": "Damin3927",

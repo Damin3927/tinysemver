@@ -1,6 +1,6 @@
 /**
  * The correctness contract: for every exported function, on every input in the
- * corpus, tinysemver must return exactly what node-semver returns — including
+ * corpus, tinyver must return exactly what node-semver returns — including
  * which inputs throw and with what error type.
  *
  * node-semver is a devDependency only; it never ships.
@@ -96,7 +96,7 @@ class Differ {
     } catch {
       if (this.mismatches.length < 25) {
         this.mismatches.push(
-          `${label}\n    semver:     ${JSON.stringify(expected)}\n    tinysemver: ${JSON.stringify(actual)}`,
+          `${label}\n    semver:     ${JSON.stringify(expected)}\n    tinyver: ${JSON.stringify(actual)}`,
         );
       } else {
         this.mismatches.push("");
