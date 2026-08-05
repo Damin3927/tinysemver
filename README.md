@@ -23,36 +23,56 @@ the `<0.0.0-0` null set, prerelease precedence, `coerce` with `rtl`, and the
 
 ## Why
 
-`semver` is excellent and correct, and 3.4 billion monthly downloads depend on
-it. It is also CommonJS-only, ships no `exports` field, cannot be tree-shaken,
-and costs 24.6 KB gzipped even if all you wanted was `satisfies`.
+Not for the bytes. `semver` is one function per file, so a bundler already drops
+what you do not import — measured with esbuild, importing `semver/functions/gt.js`
+costs 3.0 KB gzip against 3.1 KB here, and `semver/functions/satisfies.js` is
+actually *smaller* than the equivalent import from this package. If you import
+the whole namespace it is 8.6 KB against 6.9 KB, so about 1.7 KB. Real, but not a
+reason to change a dependency.
 
-If you bundle — an edge function, a browser-side version check, a Vite or
-Rollup plugin, a CLI compiled with esbuild — that is more than you meant to
-pay. `slimsemver` is the same library with modern packaging.
+Two things are worth changing a dependency for.
 
-To be straight about it: **the size win is a bundling win.** Installed on disk
-the two packages are the same (99.0 KB here, 98.7 KB for `semver`), because
-this one ships an ESM tree, a CJS tree and the deep subpaths. If nothing in
-your pipeline tree-shakes, you are switching for the ESM support and the
-[linear range parsing](#security), not for bytes.
+**Range parsing here is linear. In `semver` it is quadratic**, and that survived
+the fix for CVE-2022-25883. A range built by repeating `"v= "` is not collapsed
+by the whitespace normalisation that fix added, so it still rescans the same
+prefix from every start position:
 
-## What you actually ship
-
-Bundlers tree-shake per entry point, so the number that matters is the closure
-of what you import, not the size of the package.
-
-| you import | gzip | vs `semver` |
+| range length | `slimsemver` | `semver@7.8.5` |
 | --- | --- | --- |
-| the whole namespace | **10.1 KB** | 2.4× smaller |
-| `satisfies` | **9.2 KB** | 2.7× smaller |
-| `gt` / `lt` / `compare` | **4.5 KB** | 5.5× smaller |
-| `valid` / `parse` | **4.5 KB** | 5.5× smaller |
-| `coerce` | **4.5 KB** | 5.5× smaller |
-| `SemVer` class | **3.0 KB** | 8.2× smaller |
-| `semver` (whole package, cannot tree-shake) | 24.6 KB | — |
+| 6,000 | 4.4 ms | 89 ms |
+| 12,000 | 4.2 ms | 354 ms |
+| 24,000 | 8.2 ms | 1,325 ms |
+| 48,000 | **17 ms** | **5,336 ms** |
 
-Reproduce with `npm run size`.
+Time quadruples as the input doubles. That matters if you parse range strings a
+third party can influence — a registry manifest, a lockfile, a webhook, a form
+field. Behaviour is unchanged: the differential suite below covers that boundary
+explicitly.
+
+**It is ESM, and it ships its own types**, so you can drop `@types/semver` and
+stop paying for a CommonJS module in an ESM graph.
+
+That is the whole pitch. If neither applies to you, `semver` is a fine library
+and you should keep using it.
+
+## What it costs, measured properly
+
+Bundled with esbuild — minified, tree-shaken, gzipped. Reproduce with `npm run size`.
+
+| import shape | `semver` | `slimsemver` |
+| --- | --- | --- |
+| default import, whole namespace | 8.6 KB | **6.9 KB** |
+| named `satisfies` | 8.6 KB | **6.4 KB** |
+| named `gt` / `lt` / `compare` | 8.6 KB | **6.4 KB** |
+| deep path `functions/satisfies` | **5.6 KB** | 6.4 KB |
+| deep path `functions/gt` | **3.0 KB** | 3.1 KB |
+| deep path `major`/`minor`/`patch`/`prerelease` | 3.2 KB | **3.1 KB** |
+
+Installed on disk the two are the same: 99 KB here, 98.7 KB for `semver`.
+
+An earlier version of this README claimed 2.4–8× smaller. That number came from
+summing the gzipped source of the module closure, which is not what a bundler
+emits. It was wrong by about an order of magnitude and is corrected above.
 
 ## Why you can believe the compatibility claim
 
