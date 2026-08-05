@@ -54,10 +54,18 @@ required, and check out with `persist-credentials: false`.
 TypeScript and Node's built-in test runner. `node-semver` is a devDependency
 used solely as the differential oracle and never ships.
 
-**Denial of service is treated as a bug.** Range parsing avoids the unbounded
-`\s*` backtracking patterns that make version parsers a soft target, whitespace
-is collapsed before any grammar regex runs, and the range cache is bounded so a
-stream of distinct hostile ranges cannot grow the heap without limit.
+**Denial of service is treated as a bug, and the claim is tested.**
+`test/redos.test.ts` runs pathological input — 50,000-character whitespace and
+digit runs, 2,000-way range unions, oversized prereleases — through the public
+API under a wall-clock budget, so a complexity regression fails CI rather than
+shipping.
+
+Concretely: the tilde and caret trim patterns use bounded quantifiers instead of
+node-semver's `(\s*)X\s+`, which rescans a whitespace run from every start
+position; `Range.parseRange` normalises its own input rather than relying on the
+constructor having done it, because it is public API; version length is capped
+before any regex runs; and the range cache is bounded so a stream of distinct
+hostile ranges cannot grow the heap without limit.
 
 ## Threat model
 

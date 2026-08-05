@@ -37,11 +37,22 @@ jobs:
           registry-url: https://registry.npmjs.org
           cache: npm
 
-      # Trusted publishing requires npm >= 11.5.1.
-      - name: Pin a trusted-publishing-capable npm
+      # Trusted publishing requires npm >= 11.5.1, which the pinned Node already
+      # ships. Assert it rather than installing `npm@latest`: pulling an
+      # unpinned package into the one workflow that holds publish rights is
+      # exactly the supply-chain step worth not taking.
+      - name: Assert npm can do trusted publishing
         run: |
-          npm install -g npm@latest
-          npm --version
+          version="$(npm --version)"
+          echo "npm $version"
+          node -e '
+            const [maj, min, patch] = process.argv[1].split(".").map(Number);
+            const ok = maj > 11 || (maj === 11 && (min > 5 || (min === 5 && patch >= 1)));
+            if (!ok) {
+              console.error(`::error::npm ${process.argv[1]} is too old for trusted publishing (need >= 11.5.1)`);
+              process.exit(1);
+            }
+          ' "$version"
 
       - run: npm ci --ignore-scripts
 

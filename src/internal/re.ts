@@ -55,18 +55,29 @@ export const XRANGE_PLAIN_LOOSE = xrangePlain(NUMERIC_LOOSE, true);
 export const XRANGE = new RegExp(`^${GTLT}\\s*${XRANGE_PLAIN}$`);
 export const XRANGE_LOOSE = new RegExp(`^${GTLT}\\s*${XRANGE_PLAIN_LOOSE}$`);
 
+/**
+ * The `_TRIM` patterns below use `\s?` where node-semver uses `\s*`/`\s+`.
+ *
+ * `(\s*)X\s+` is polynomial: on a long run of whitespace the engine rescans the
+ * run from every start position. node-semver gets away with it because the
+ * Range constructor collapses whitespace first — but `parseRange` is public, so
+ * the guarantee cannot live only at the call site. `Range.parseRange` therefore
+ * normalises its own input, and these patterns are written to the post-
+ * normalisation alphabet, where a whitespace run is always exactly one space.
+ * Bounded quantifiers make them linear while matching identically.
+ */
 export const TILDE = new RegExp(`^(?:~>?)${XRANGE_PLAIN}$`);
 export const TILDE_LOOSE = new RegExp(`^(?:~>?)${XRANGE_PLAIN_LOOSE}$`);
-export const TILDE_TRIM = new RegExp("(\\s*)(?:~>?)\\s+", "g");
+export const TILDE_TRIM = new RegExp("(\\s?)(?:~>?)\\s", "g");
 
 export const CARET = new RegExp(`^(?:\\^)${XRANGE_PLAIN}$`);
 export const CARET_LOOSE = new RegExp(`^(?:\\^)${XRANGE_PLAIN_LOOSE}$`);
-export const CARET_TRIM = new RegExp("(\\s*)(?:\\^)\\s+", "g");
+export const CARET_TRIM = new RegExp("(\\s?)(?:\\^)\\s", "g");
 
 export const COMPARATOR = new RegExp(`^${GTLT}\\s*(${FULL_PLAIN})$|^$`);
 export const COMPARATOR_LOOSE = new RegExp(`^${GTLT}\\s*(${LOOSE_PLAIN})$|^$`);
 export const COMPARATOR_TRIM = new RegExp(
-  `(\\s*)${GTLT}\\s*(${LOOSE_PLAIN}|${XRANGE_PLAIN})`,
+  `(\\s?)${GTLT}\\s?(${LOOSE_PLAIN}|${XRANGE_PLAIN})`,
   "g",
 );
 
@@ -81,8 +92,8 @@ export const HYPHENRANGE_LOOSE = new RegExp(
 export const BUILD_STRIP = new RegExp(BUILD, "g");
 
 export const STAR = new RegExp("(<|>)?=?\\s*\\*");
-export const GTE0 = new RegExp("^\\s*>=\\s*0\\.0\\.0\\s*$");
-export const GTE0_PRE = new RegExp("^\\s*>=\\s*0\\.0\\.0-0\\s*$");
+export const GTE0 = new RegExp("^\\s?>=\\s?0\\.0\\.0\\s?$");
+export const GTE0_PRE = new RegExp("^\\s?>=\\s?0\\.0\\.0-0\\s?$");
 
 const COERCE_PLAIN =
   `(^|[^\\d])` +
