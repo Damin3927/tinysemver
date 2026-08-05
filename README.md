@@ -58,10 +58,17 @@ every production in the range grammar, and the results must be **byte-identical
 — including which inputs throw and with what error type**:
 
 ```
-→ 104,560 differential cases vs node-semver, 0 mismatches
+→ 119,796 differential cases vs node-semver, 0 mismatches
 ```
 
-A second suite asserts that every name `semver` exports also exists here, with
+A **differential fuzzer** generates inputs rather than relying on the ones
+somebody thought of — valid versions and ranges from the grammar, mutations of
+them, and outright garbage — and requires the two libraries to agree on all of
+them. It runs on every commit and soaks 4 million inputs nightly. It has already
+earned its place: it found that `1.x.3` and `x.1.2` were accepted here and
+rejected by `semver`, which no hand-written case had covered.
+
+A third suite asserts that every name `semver` exports also exists here, with
 the same kind and a compatible arity, so a rename or an omission fails the
 build. That is how `truncate` — added to `semver` recently and easy to miss —
 got caught before release.

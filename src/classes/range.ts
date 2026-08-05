@@ -271,6 +271,18 @@ function parseComparator(comp: string, options: Options): string {
 const isX = (id: string | undefined): boolean =>
   !id || id.toLowerCase() === "x" || id === "*";
 
+/**
+ * A wildcard may not be followed by a concrete component: `1.x.3` and `x.1.2`
+ * are not ranges. The grammar regex happily matches them, so the ordering has
+ * to be rejected here, by leaving the comparator untouched so it fails to parse
+ * downstream.
+ */
+const invalidXRangeOrder = (
+  M: string,
+  m: string,
+  p: string,
+): boolean => (isX(M) && !isX(m)) || (isX(m) && !!p && !isX(p));
+
 const replaceTildes = (comp: string, options: Options): string =>
   comp
     .trim()
@@ -348,6 +360,10 @@ function replaceXRange(comp: string, options: Options): string {
   return comp.replace(
     r,
     (ret: string, gtlt: string, M: string, m: string, p: string) => {
+      if (invalidXRangeOrder(M, m, p)) {
+        return comp;
+      }
+
       const xM = isX(M);
       const xm = xM || isX(m);
       const xp = xm || isX(p);

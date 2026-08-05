@@ -152,6 +152,22 @@ export const RANGES = [
   "vvvvvvvvvvvvvvvvvvvv1.2.3",
   "==================1.2.3",
   "v= v= v= v= v= v= v= v= v= 1.2.3",
+  // A wildcard may not be followed by a concrete component. The grammar regex
+  // matches these, so they are rejected by an explicit ordering check; found by
+  // the fuzzer, not by anyone writing cases out by hand.
+  "9.X.3",
+  "1.x.3",
+  "1.*.3",
+  "x.1.2",
+  "*.1.2",
+  "x.x.3",
+  ">=1.x.3",
+  "^1.x.3",
+  "~x.1.2",
+  "1.x.3 - 2.0.0",
+  "1.x.x",
+  "x.x.x",
+  "1.2.x",
 ];
 
 export const INVALID_RANGES = [
