@@ -67,6 +67,32 @@ constructor having done it, because it is public API; version length is capped
 before any regex runs; and the range cache is bounded so a stream of distinct
 hostile ranges cannot grow the heap without limit.
 
+### Range parsing is linear where node-semver's is quadratic
+
+A range built from repeated `"v= "` survives whitespace normalisation, and
+node-semver then rescans that prefix from every start position. Parsing time
+quadruples with each doubling of length:
+
+| range length | `tinysemver` | `semver@7.8.5` |
+| --- | --- | --- |
+| 6,000 | 4.4 ms | 94 ms |
+| 12,000 | 4.1 ms | 371 ms |
+| 24,000 | 8.0 ms | 1,348 ms |
+| 48,000 | **16 ms** | **5,392 ms** |
+
+If your code parses range strings that a third party can influence — a registry
+manifest, a lockfile, a webhook, user input — that is a denial-of-service vector.
+
+The fix does not change what is matched. The bounded prefix is used *only* in
+`COMPARATOR_TRIM`, the one pattern applied unanchored to a whole range string;
+every other pattern is anchored and runs against a single short token, so it
+keeps node-semver's grammar exactly, including loose mode accepting an
+arbitrarily long prefix. The 104,560-case differential suite is what
+establishes that, and it covers this boundary explicitly.
+
+This behaviour is inherited from node-semver rather than introduced here; it has
+not been reported upstream by this project.
+
 ## Threat model
 
 In scope: incorrect parsing or comparison that causes a caller to accept a

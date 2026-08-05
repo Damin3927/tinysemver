@@ -134,6 +134,24 @@ export const RANGES = [
   "^1.2.3+build",
   "x - 2",
   "1 - x",
+  // Leading `v`/`=`/whitespace noise. The grammar bounds this prefix to keep
+  // the comparator scan linear, so the boundary is worth pinning down: the
+  // short forms are valid, everything longer is rejected by both libraries.
+  "v1.2.3",
+  "=1.2.3",
+  "= 1.2.3",
+  " = 1.2.3",
+  "v=1.2.3",
+  "v= 1.2.3",
+  "v=v=1.2.3",
+  "= = 1.2.3",
+  ">=v1.2.3",
+  ">= =1.2.3",
+  "^v1.2.3",
+  "~= 1.2.3",
+  "vvvvvvvvvvvvvvvvvvvv1.2.3",
+  "==================1.2.3",
+  "v= v= v= v= v= v= v= v= v= 1.2.3",
 ];
 
 export const INVALID_RANGES = [
