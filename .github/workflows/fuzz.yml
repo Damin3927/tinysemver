@@ -42,6 +42,6 @@ jobs:
         env:
           # Distinct seed per shard per run; printed by the test so any failure
           # reproduces exactly.
-          TINYSEMVER_FUZZ_SEED: ${{ inputs.seed != '' && inputs.seed || format('{0}{1}', github.run_number, matrix.shard) }}
-          TINYSEMVER_FUZZ_ITERATIONS: ${{ inputs.iterations || '1000000' }}
+          TINYVER_FUZZ_SEED: ${{ inputs.seed != '' && inputs.seed || format('{0}{1}', github.run_number, matrix.shard) }}
+          TINYVER_FUZZ_ITERATIONS: ${{ inputs.iterations || '1000000' }}
         run: node --test test/fuzz.test.ts

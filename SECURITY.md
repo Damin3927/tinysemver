@@ -3,7 +3,7 @@
 ## Reporting a vulnerability
 
 Report privately through
-[GitHub Security Advisories](https://github.com/Damin3927/tinysemver/security/advisories/new).
+[GitHub Security Advisories](https://github.com/Damin3927/tinyver/security/advisories/new).
 Please do not open a public issue for a suspected vulnerability.
 
 Expect an acknowledgement within 72 hours and a fix or a stated timeline within
@@ -15,7 +15,7 @@ The latest minor of the current major receives security fixes.
 
 ## Supply-chain posture
 
-`tinysemver` parses untrusted strings, and it tends to sit deep in dependency
+`tinyver` parses untrusted strings, and it tends to sit deep in dependency
 trees where nobody reads its diffs. Both facts inform how it is built and
 released.
 
@@ -73,7 +73,7 @@ A range built from repeated `"v= "` survives whitespace normalisation, and
 node-semver then rescans that prefix from every start position. Parsing time
 quadruples with each doubling of length:
 
-| range length | `tinysemver` | `semver@7.8.5` |
+| range length | `tinyver` | `semver@7.8.5` |
 | --- | --- | --- |
 | 6,000 | 4.4 ms | 94 ms |
 | 12,000 | 4.1 ms | 371 ms |
@@ -91,7 +91,7 @@ arbitrarily long prefix. The 119,796-case differential suite is what
 establishes that, and it covers this boundary explicitly.
 
 **The differential oracle is fuzzed.** `test/fuzz.test.ts` generates versions,
-ranges, mutations and garbage from a seeded PRNG and requires tinysemver and
+ranges, mutations and garbage from a seeded PRNG and requires tinyver and
 node-semver to agree, running on every commit and soaking 4 million inputs
 nightly across four shards. Seeds are printed so any divergence reproduces
 exactly.

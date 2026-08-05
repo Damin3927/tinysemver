@@ -107,7 +107,7 @@ import {
 
 /**
  * Namespace object matching `require('semver')`, so that
- * `import semver from 'tinysemver'` behaves like the package it replaces.
+ * `import semver from 'tinyver'` behaves like the package it replaces.
  */
 export default {
   parse,
