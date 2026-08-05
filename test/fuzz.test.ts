@@ -4,12 +4,12 @@
  * The hand-written corpus in `corpus.ts` covers every production in the range
  * grammar, but it only covers the combinations somebody thought of. This
  * generates inputs instead — valid versions and ranges from the grammar, then
- * mutations of them, then outright garbage — and requires tinyver and
+ * mutations of them, then outright garbage — and requires slimsemver and
  * node-semver to agree on every one.
  *
  * The PRNG is seeded and the seed is printed, so a failure is reproducible:
  *
- *   TINYVER_FUZZ_SEED=12345 TINYVER_FUZZ_ITERATIONS=200000 npm test
+ *   SLIMSEMVER_FUZZ_SEED=12345 SLIMSEMVER_FUZZ_ITERATIONS=200000 npm test
  */
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -21,8 +21,8 @@ const semver = semverTyped as typeof semverTyped & {
   truncate(v: string, t: string, o?: unknown): string | null;
 };
 
-const SEED = Number(process.env.TINYVER_FUZZ_SEED ?? 0x5eed1e);
-const ITERATIONS = Number(process.env.TINYVER_FUZZ_ITERATIONS ?? 25_000);
+const SEED = Number(process.env.SLIMSEMVER_FUZZ_SEED ?? 0x5eed1e);
+const ITERATIONS = Number(process.env.SLIMSEMVER_FUZZ_ITERATIONS ?? 25_000);
 
 /** xorshift32 — small, fast, and reproducible across platforms. */
 function makeRng(seed: number): () => number {
@@ -160,7 +160,7 @@ test(`differential fuzz: ${ITERATIONS.toLocaleString("en-US")} generated inputs 
         assert.deepStrictEqual(actual, expected);
       } catch {
         failures.push(
-          `${label} opts=${JSON.stringify(opts)}\n    semver:     ${JSON.stringify(expected)}\n    tinyver: ${JSON.stringify(actual)}`,
+          `${label} opts=${JSON.stringify(opts)}\n    semver:     ${JSON.stringify(expected)}\n    slimsemver: ${JSON.stringify(actual)}`,
         );
       }
     }
@@ -169,6 +169,6 @@ test(`differential fuzz: ${ITERATIONS.toLocaleString("en-US")} generated inputs 
   assert.deepStrictEqual(
     failures,
     [],
-    `fuzz divergence (reproduce with TINYVER_FUZZ_SEED=${SEED}):\n  ${failures.join("\n  ")}`,
+    `fuzz divergence (reproduce with SLIMSEMVER_FUZZ_SEED=${SEED}):\n  ${failures.join("\n  ")}`,
   );
 });
