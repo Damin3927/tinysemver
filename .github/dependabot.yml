@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # Actions are pinned by commit SHA; Dependabot keeps the pin current and
+  # writes the human-readable version into the trailing comment.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+    # There are no runtime dependencies to update; this covers the toolchain.
+    versioning-strategy: increase

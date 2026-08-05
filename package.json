@@ -1,0 +1,91 @@
+{
+  "name": "tinysemver",
+  "version": "1.0.0",
+  "description": "A tiny, zero-dependency, ESM-first drop-in replacement for semver. Same API, same semantics, a third of the size.",
+  "keywords": [
+    "semver",
+    "semantic",
+    "version",
+    "versioning",
+    "range",
+    "satisfies",
+    "tiny",
+    "esm",
+    "zero-dependency",
+    "tree-shakeable"
+  ],
+  "homepage": "https://github.com/Damin3927/tinysemver#readme",
+  "bugs": "https://github.com/Damin3927/tinysemver/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Damin3927/tinysemver.git"
+  },
+  "license": "MIT",
+  "author": "Damin3927",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./functions/*": {
+      "types": "./dist/esm/shims/functions/*.d.ts",
+      "import": "./dist/esm/shims/functions/*.js",
+      "require": "./dist/cjs/shims/functions/*.js"
+    },
+    "./classes/*": {
+      "types": "./dist/esm/shims/classes/*.d.ts",
+      "import": "./dist/esm/shims/classes/*.js",
+      "require": "./dist/cjs/shims/classes/*.js"
+    },
+    "./ranges/*": {
+      "types": "./dist/esm/shims/ranges/*.d.ts",
+      "import": "./dist/esm/shims/ranges/*.js",
+      "require": "./dist/cjs/shims/ranges/*.js"
+    },
+    "./internals/*": {
+      "types": "./dist/esm/shims/internals/*.d.ts",
+      "import": "./dist/esm/shims/internals/*.js",
+      "require": "./dist/cjs/shims/internals/*.js"
+    },
+    "./preload": {
+      "types": "./dist/esm/shims/preload.d.ts",
+      "import": "./dist/esm/shims/preload.js",
+      "require": "./dist/cjs/shims/preload.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "files": [
+    "dist",
+    "!dist/**/*.tsbuildinfo",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node --test test/*.test.ts",
+    "test:diff": "node --test test/differential.test.ts",
+    "size": "node scripts/size.mjs",
+    "smoke": "node test/smoke.mjs",
+    "verify:package": "node scripts/verify-package.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "@types/semver": "7.7.1",
+    "semver": "7.8.5",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
