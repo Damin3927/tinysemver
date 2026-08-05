@@ -58,7 +58,7 @@ every production in the range grammar, and the results must be **byte-identical
 — including which inputs throw and with what error type**:
 
 ```
-→ 88,660 differential cases vs node-semver, 0 mismatches
+→ 104,560 differential cases vs node-semver, 0 mismatches
 ```
 
 A second suite asserts that every name `semver` exports also exists here, with
@@ -100,6 +100,12 @@ If you find any other divergence, that is a bug — please
 [open an issue](https://github.com/Damin3927/tinysemver/issues) with the input.
 
 ## Security
+
+Range parsing is **linear where node-semver's is quadratic**. A range built from
+repeated `"v= "` makes `semver@7.8.5` rescan the same prefix from every start
+position — 48,000 characters takes it 5.4 seconds, against 16 ms here — which
+matters if anything you parse can be influenced by a third party. Behaviour is
+unchanged; the differential suite covers that boundary explicitly.
 
 Zero runtime dependencies. Nothing executes on install. Releases are published
 from CI using [trusted publishing](https://docs.npmjs.com/trusted-publishers)

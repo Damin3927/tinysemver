@@ -27,8 +27,27 @@ const prerelease = (num: string, lax: boolean) => {
   return `(?:-${lax ? "?" : ""}(${id}(?:\\.${id})*))`;
 };
 
-const plainFull = (num: string, lax: boolean) =>
-  `${lax ? "[v=\\s]*" : "v?"}${main(num)}${prerelease(num, lax)}?${BUILD}?`;
+/**
+ * The leading `v`/`=`/whitespace noise a loose version may carry.
+ *
+ * Unbounded, this is the last quadratic vector that survives whitespace
+ * normalisation: `"v= "` repeated is not collapsible, so an *unanchored* scan
+ * rescans the prefix from every start position. Measured on node-semver itself,
+ * a 24,000-character `"v= "` range takes ~1.4s and quadruples with each
+ * doubling of length.
+ *
+ * It only bites where the pattern is applied unanchored to a whole range
+ * string, which is `COMPARATOR_TRIM` alone. Everywhere else the pattern is
+ * anchored and runs against a single short token, where an unbounded prefix
+ * costs nothing. So the bounded form is used exclusively for that one pattern,
+ * and every other use keeps node-semver's semantics exactly — including loose
+ * mode accepting an arbitrarily long prefix.
+ */
+const LEADING_NOISE = "[v=\\s]*";
+const LEADING_NOISE_BOUNDED = "[v=\\s]{0,16}";
+
+const plainFull = (num: string, lax: boolean, noise = LEADING_NOISE) =>
+  `${lax ? noise : "v?"}${main(num)}${prerelease(num, lax)}?${BUILD}?`;
 
 export const FULL_PLAIN = plainFull(NUMERIC, false);
 export const LOOSE_PLAIN = plainFull(NUMERIC_LOOSE, true);
@@ -38,10 +57,10 @@ export const LOOSE = new RegExp(`^${LOOSE_PLAIN}$`);
 
 const GTLT = "((?:<|>)?=?)";
 
-const xrangePlain = (num: string, lax: boolean) => {
+const xrangePlain = (num: string, lax: boolean, noise = LEADING_NOISE) => {
   const xid = `${num}|x|X|\\*`;
   return (
-    `[v=\\s]*(${xid})` +
+    `${noise}(${xid})` +
     `(?:\\.(${xid})` +
     `(?:\\.(${xid})` +
     `(?:${prerelease(num, lax)})?${BUILD}?` +
@@ -76,8 +95,10 @@ export const CARET_TRIM = new RegExp("(\\s?)(?:\\^)\\s", "g");
 
 export const COMPARATOR = new RegExp(`^${GTLT}\\s*(${FULL_PLAIN})$|^$`);
 export const COMPARATOR_LOOSE = new RegExp(`^${GTLT}\\s*(${LOOSE_PLAIN})$|^$`);
+// The only unanchored, whole-string pattern, and therefore the only one where
+// an unbounded leading-noise prefix is quadratic. See LEADING_NOISE_BOUNDED.
 export const COMPARATOR_TRIM = new RegExp(
-  `(\\s?)${GTLT}\\s?(${LOOSE_PLAIN}|${XRANGE_PLAIN})`,
+  `(\\s?)${GTLT}\\s?(${plainFull(NUMERIC_LOOSE, true, LEADING_NOISE_BOUNDED)}|${xrangePlain(NUMERIC, false, LEADING_NOISE_BOUNDED)})`,
   "g",
 );
 
@@ -91,7 +112,9 @@ export const HYPHENRANGE_LOOSE = new RegExp(
 /** Strips `+build` metadata from a range so it cannot bleed into a version. */
 export const BUILD_STRIP = new RegExp(BUILD, "g");
 
-export const STAR = new RegExp("(<|>)?=?\\s*\\*");
+// `\\s?` for the same reason as the trim patterns: comparator text is
+// whitespace-normalised before this runs, so a run is never longer than one.
+export const STAR = new RegExp("(<|>)?=?\\s?\\*");
 export const GTE0 = new RegExp("^\\s?>=\\s?0\\.0\\.0\\s?$");
 export const GTE0_PRE = new RegExp("^\\s?>=\\s?0\\.0\\.0-0\\s?$");
 
