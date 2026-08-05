@@ -83,6 +83,11 @@ jobs:
       - name: Assert the tarball ships nothing unexpected
         run: node scripts/verify-package.mjs
 
+      # Resolves every specifier from an actual install, against node-semver.
+      # The exports map is its own program and is not covered by the unit tests.
+      - name: Assert every entry point resolves like node-semver
+        run: node scripts/verify-exports.mjs
+
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tarball

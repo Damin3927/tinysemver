@@ -35,7 +35,17 @@
       "import": "./dist/esm/shims/functions/*.js",
       "require": "./dist/cjs/shims/functions/*.js"
     },
+    "./functions/*.js": {
+      "types": "./dist/esm/shims/functions/*.d.ts",
+      "import": "./dist/esm/shims/functions/*.js",
+      "require": "./dist/cjs/shims/functions/*.js"
+    },
     "./classes/*": {
+      "types": "./dist/esm/shims/classes/*.d.ts",
+      "import": "./dist/esm/shims/classes/*.js",
+      "require": "./dist/cjs/shims/classes/*.js"
+    },
+    "./classes/*.js": {
       "types": "./dist/esm/shims/classes/*.d.ts",
       "import": "./dist/esm/shims/classes/*.js",
       "require": "./dist/cjs/shims/classes/*.js"
@@ -45,12 +55,27 @@
       "import": "./dist/esm/shims/ranges/*.js",
       "require": "./dist/cjs/shims/ranges/*.js"
     },
+    "./ranges/*.js": {
+      "types": "./dist/esm/shims/ranges/*.d.ts",
+      "import": "./dist/esm/shims/ranges/*.js",
+      "require": "./dist/cjs/shims/ranges/*.js"
+    },
     "./internals/*": {
       "types": "./dist/esm/shims/internals/*.d.ts",
       "import": "./dist/esm/shims/internals/*.js",
       "require": "./dist/cjs/shims/internals/*.js"
     },
+    "./internals/*.js": {
+      "types": "./dist/esm/shims/internals/*.d.ts",
+      "import": "./dist/esm/shims/internals/*.js",
+      "require": "./dist/cjs/shims/internals/*.js"
+    },
     "./preload": {
+      "types": "./dist/esm/shims/preload.d.ts",
+      "import": "./dist/esm/shims/preload.js",
+      "require": "./dist/cjs/shims/preload.js"
+    },
+    "./preload.js": {
       "types": "./dist/esm/shims/preload.d.ts",
       "import": "./dist/esm/shims/preload.js",
       "require": "./dist/cjs/shims/preload.js"
@@ -73,7 +98,8 @@
     "test:diff": "node --test test/differential.test.ts",
     "size": "node scripts/size.mjs",
     "smoke": "node test/smoke.mjs",
-    "verify:package": "node scripts/verify-package.mjs"
+    "verify:package": "node scripts/verify-package.mjs",
+    "verify:exports": "node scripts/verify-exports.mjs"
   },
   "devDependencies": {
     "@types/node": "26.1.2",
