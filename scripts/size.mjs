@@ -1,99 +1,123 @@
 /**
- * Reports what a consumer actually ships.
+ * Measures what a bundler actually emits.
  *
- * The whole-package number flatters nobody: what matters for a tree-shaking
- * bundler is the transitive module closure of the entry points you import. So
- * resolve that closure per public API and gzip only those modules.
+ * This script used to sum the gzipped source of the transitive module closure.
+ * That number is not what ships: it skips minification, and it counts whole
+ * modules where a bundler does dead-code elimination inside them. It overstated
+ * the difference by roughly an order of magnitude, and the wrong figure reached
+ * the README and a pull request against another project before anyone checked
+ * it against a real build.
+ *
+ * So it now runs esbuild — bundle, minify, tree-shake, gzip — over the same
+ * import shapes for both libraries, and prints them side by side.
  */
-import { readFileSync, readdirSync, statSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { execFileSync } from "node:child_process";
 import { gzipSync } from "node:zlib";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
-const root = resolve(import.meta.dirname, "..");
-const esm = join(root, "dist", "esm");
+import { build } from "esbuild";
 
-const IMPORT_RE = /(?:from|import)\s*["']([^"']+)["']/g;
+// Both libraries are resolved from a real install, so the numbers reflect the
+// published `exports` map rather than whatever the working tree happens to be.
+const dir = mkdtempSync(join(tmpdir(), "slimsemver-size-"));
+const tarball = execFileSync(
+  "npm",
+  ["pack", "--silent", "--ignore-scripts", "--pack-destination", dir],
+  { encoding: "utf8" },
+).trim();
+writeFileSync(
+  join(dir, "package.json"),
+  JSON.stringify({ name: "scratch", private: true, version: "0.0.0" }) + "\n",
+);
+execFileSync(
+  "npm",
+  ["install", "--silent", "--no-audit", "--no-fund", "semver", join(dir, tarball)],
+  { cwd: dir, stdio: ["ignore", "ignore", "inherit"] },
+);
 
-function closure(entry) {
-  const seen = new Set();
-  const stack = [entry];
-  while (stack.length) {
-    const file = stack.pop();
-    if (seen.has(file)) continue;
-    seen.add(file);
-    const src = readFileSync(file, "utf8");
-    for (const m of src.matchAll(IMPORT_RE)) {
-      const spec = m[1];
-      if (!spec.startsWith(".")) continue;
-      stack.push(resolve(dirname(file), spec));
-    }
-  }
-  return seen;
+async function bundle(code) {
+  const entry = join(dir, "entry.mjs");
+  writeFileSync(entry, code);
+  const result = await build({
+    entryPoints: [entry],
+    bundle: true,
+    minify: true,
+    treeShaking: true,
+    format: "esm",
+    platform: "browser",
+    write: false,
+    absWorkingDir: dir,
+  });
+  const out = result.outputFiles[0].contents;
+  return { min: out.length, gzip: gzipSync(out, { level: 9 }).length };
 }
 
-const gzipOf = (files) => {
-  let raw = 0;
-  let gz = 0;
-  for (const f of files) {
-    const b = readFileSync(f);
-    raw += b.length;
-    gz += gzipSync(b, { level: 9 }).length;
-  }
-  return { raw, gz };
-};
-
-function walk(dir, out = []) {
-  for (const e of readdirSync(dir, { withFileTypes: true })) {
-    const p = join(dir, e.name);
-    if (e.isDirectory()) walk(p, out);
-    else if (/\.js$/.test(p)) out.push(p);
-  }
-  return out;
-}
+/** Each case is the same program written against each library. */
+const CASES = [
+  {
+    label: "default import, whole namespace",
+    semver: 'import s from "semver"; console.log(s);',
+    slim: 'import * as s from "slimsemver"; console.log(s);',
+  },
+  {
+    label: "named: satisfies",
+    semver: 'import { satisfies } from "semver"; console.log(satisfies);',
+    slim: 'import { satisfies } from "slimsemver"; console.log(satisfies);',
+  },
+  {
+    label: "named: gt / lt / compare",
+    semver: 'import { gt, lt, compare } from "semver"; console.log(gt, lt, compare);',
+    slim: 'import { gt, lt, compare } from "slimsemver"; console.log(gt, lt, compare);',
+  },
+  {
+    label: "deep path: satisfies",
+    semver: 'import x from "semver/functions/satisfies.js"; console.log(x);',
+    slim: 'import x from "slimsemver/functions/satisfies"; console.log(x);',
+  },
+  {
+    label: "deep path: gt",
+    semver: 'import x from "semver/functions/gt.js"; console.log(x);',
+    slim: 'import x from "slimsemver/functions/gt"; console.log(x);',
+  },
+  {
+    label: "deep path: major/minor/patch/prerelease",
+    semver:
+      'import a from "semver/functions/major.js"; import b from "semver/functions/minor.js"; import c from "semver/functions/patch.js"; import d from "semver/functions/prerelease.js"; console.log(a,b,c,d);',
+    slim:
+      'import a from "slimsemver/functions/major"; import b from "slimsemver/functions/minor"; import c from "slimsemver/functions/patch"; import d from "slimsemver/functions/prerelease"; console.log(a,b,c,d);',
+  },
+];
 
 const kb = (n) => `${(n / 1024).toFixed(1)} KB`;
 
-const ENTRIES = {
-  "everything (import * from 'slimsemver')": join(esm, "index.js"),
-  "satisfies": join(esm, "shims", "functions", "satisfies.js"),
-  "gt / lt / compare": join(esm, "shims", "functions", "gt.js"),
-  "valid / parse": join(esm, "shims", "functions", "parse.js"),
-  "coerce": join(esm, "shims", "functions", "coerce.js"),
-  "SemVer class": join(esm, "shims", "classes", "semver.js"),
-  "subset": join(esm, "shims", "ranges", "subset.js"),
-};
-
-console.log("slimsemver — shipped bytes by entry point (gzip, tree-shaken closure)\n");
-const rows = [];
-for (const [label, entry] of Object.entries(ENTRIES)) {
-  const files = closure(entry);
-  const { raw, gz } = gzipOf(files);
-  rows.push([label, String(files.size), kb(raw), kb(gz)]);
-}
-
-const semverDir = join(root, "node_modules", "semver");
-let semverRow = null;
 try {
-  statSync(semverDir);
-  const files = walk(semverDir).filter((f) => !f.includes(`${"semver"}/node_modules`));
-  const { raw, gz } = gzipOf(files);
-  semverRow = ["semver (whole package, no tree-shaking)", String(files.length), kb(raw), kb(gz)];
-} catch {
-  /* semver is a devDependency; absent in a production install */
-}
+  const rows = [];
+  for (const c of CASES) {
+    const a = await bundle(c.semver);
+    const b = await bundle(c.slim);
+    const delta = a.gzip - b.gzip;
+    rows.push([
+      c.label,
+      kb(a.gzip),
+      kb(b.gzip),
+      `${delta >= 0 ? "-" : "+"}${kb(Math.abs(delta))}`,
+    ]);
+  }
 
-const all = semverRow ? [...rows, semverRow] : rows;
-const head = ["entry point", "modules", "raw", "gzip"];
-const widths = head.map((h, i) =>
-  Math.max(h.length, ...all.map((r) => r[i].length)),
-);
-const line = (cells) =>
-  cells.map((c, i) => c.padEnd(widths[i])).join("  ").trimEnd();
+  const head = ["import shape", "semver", "slimsemver", "delta"];
+  const w = head.map((h, i) => Math.max(h.length, ...rows.map((r) => r[i].length)));
+  const line = (cells) => cells.map((c, i) => c.padEnd(w[i])).join("  ").trimEnd();
 
-console.log(line(head));
-console.log(widths.map((w) => "-".repeat(w)).join("  "));
-for (const r of rows) console.log(line(r));
-if (semverRow) {
-  console.log(widths.map((w) => "-".repeat(w)).join("  "));
-  console.log(line(semverRow));
+  console.log("bundled with esbuild (minified, tree-shaken, gzip)\n");
+  console.log(line(head));
+  console.log(w.map((n) => "-".repeat(n)).join("  "));
+  for (const r of rows) console.log(line(r));
+  console.log(
+    "\nsemver is one function per file, so a bundler already drops what you do\n" +
+      "not import. Size is not the reason to switch — see the README.",
+  );
+} finally {
+  rmSync(dir, { recursive: true, force: true });
 }
