@@ -67,6 +67,26 @@ eq(satisfiesCjs("1.2.3", "^1.0.0"), true, "cjs subpath satisfies");
 const idents = require("../dist/cjs/shims/internals/identifiers.js");
 eq(typeof idents.compareIdentifiers, "function", "cjs internals/identifiers");
 
+// Every deep path must resolve in both the bare and the `.js` form, because
+// node-semver's are real files on disk and real code writes them both ways —
+// Storybook, for one, imports `semver/functions/sort.js`. Resolution is not
+// covered by the API tests, and this shipped broken once.
+for (const spec of [
+  "functions/sort", "functions/satisfies", "functions/gt", "functions/coerce",
+  "classes/semver", "classes/range", "classes/comparator",
+  "ranges/subset", "ranges/valid", "ranges/min-version",
+  "internals/identifiers", "preload",
+]) {
+  for (const form of [spec, `${spec}.js`]) {
+    const target = form.replace(/^([^/]+)\//, (_, dir) =>
+      dir === "preload" ? "" : `${dir}/`);
+    const rel = form === "preload" || form === "preload.js"
+      ? "../dist/cjs/shims/preload.js"
+      : `../dist/cjs/shims/${target.replace(/\.js$/, "")}.js`;
+    ok(require(rel) !== undefined, `cjs deep path resolves: ${form}`);
+  }
+}
+
 // --- Supply-chain invariants ----------------------------------------------
 eq(pkg.dependencies ?? {}, {}, "package must have zero runtime dependencies");
 for (const hook of ["preinstall", "install", "postinstall", "prepare"]) {

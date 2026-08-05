@@ -62,6 +62,7 @@ jobs:
       - run: npm run build
       - run: npm run smoke
       - run: npm run verify:package
+      - run: npm run verify:exports
 
       - name: Refuse to publish a version that disagrees with the tag
         if: github.event_name == 'release'
