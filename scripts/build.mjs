@@ -226,8 +226,8 @@ function minifyTree(format) {
       minify: true,
       format: format === "esm" ? "esm" : "cjs",
       target: "es2022",
-      // Keeps `fn.length` intact, which the API-parity test compares against
-      // node-semver, and keeps class names in stack traces.
+      // Preserves function/class names (the `.name` property) for debugging and stack traces.
+      // Note: `keepNames` does not preserve function arity (`fn.length`).
       keepNames: true,
       legalComments: "none",
     });
