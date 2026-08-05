@@ -106,7 +106,7 @@ function shimSingle(format, dir, file, moduleRel, binding) {
     emit(
       "esm",
       `shims/${dir}/${file}.d.ts`,
-      `import { ${binding} } from "${from.replace(/\.js$/, ".js")}";\n` +
+      `import { ${binding} } from "${from}";\n` +
         `export default ${binding};\n`,
     );
   } else {

@@ -125,6 +125,12 @@ export class Range {
   }
 
   parseRange(range: string): Comparator[] {
+    // This is public API, so it cannot assume the constructor's normalisation
+    // ran. Collapsing whitespace here is linear, and it is what lets the trim
+    // patterns in re.ts use bounded quantifiers instead of the `(\s*)X\s+`
+    // shape, which rescans a whitespace run from every start position.
+    range = range.trim().split(/\s+/).join(" ");
+
     // Strip build metadata up front so it cannot bleed into a version.
     range = range.replace(BUILD_STRIP, "");
 
