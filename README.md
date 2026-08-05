@@ -1,19 +1,19 @@
-# tinyver
+# slimsemver
 
 A drop-in replacement for [`semver`](https://www.npmjs.com/package/semver) — same API, same behaviour, a fraction of the bytes.
 
-[![CI](https://github.com/Damin3927/tinyver/actions/workflows/ci.yml/badge.svg)](https://github.com/Damin3927/tinyver/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/tinyver.svg)](https://www.npmjs.com/package/tinyver)
+[![CI](https://github.com/Damin3927/slimsemver/actions/workflows/ci.yml/badge.svg)](https://github.com/Damin3927/slimsemver/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/slimsemver.svg)](https://www.npmjs.com/package/slimsemver)
 [![provenance](https://img.shields.io/badge/npm-provenance-blue)](https://docs.npmjs.com/generating-provenance-statements)
 [![zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](package.json)
 
 ```sh
-npm install tinyver
+npm install slimsemver
 ```
 
 ```diff
 - import semver from "semver";
-+ import semver from "tinyver";
++ import semver from "slimsemver";
 ```
 
 That is the entire migration. Every export keeps its name, its signature, and its
@@ -29,7 +29,7 @@ and costs 24.6 KB gzipped even if all you wanted was `satisfies`.
 
 If you are writing a bundler plugin, an edge function, a browser-side version
 check, or a CLI where startup time is visible, that is more than you meant to
-pay. `tinyver` is the same library with modern packaging.
+pay. `slimsemver` is the same library with modern packaging.
 
 ## What you actually ship
 
@@ -53,7 +53,7 @@ Reproduce with `npm run size`.
 Compatibility here is not a promise in a README, it is a test that runs on every
 commit.
 
-`tinyver` and `semver` are executed side by side across a corpus covering
+`slimsemver` and `semver` are executed side by side across a corpus covering
 every production in the range grammar, and the results must be **byte-identical
 — including which inputs throw and with what error type**:
 
@@ -85,10 +85,10 @@ The deep paths that bundle-conscious code already uses are supported, including
 their CommonJS `module.exports = fn` shape:
 
 ```js
-import satisfies from "tinyver/functions/satisfies";
-import SemVer from "tinyver/classes/semver";
-import subset from "tinyver/ranges/subset";
-const gt = require("tinyver/functions/gt");
+import satisfies from "slimsemver/functions/satisfies";
+import SemVer from "slimsemver/classes/semver";
+import subset from "slimsemver/ranges/subset";
+const gt = require("slimsemver/functions/gt");
 ```
 
 Both ESM and CommonJS are shipped, with types for each.
@@ -104,7 +104,7 @@ One, and it is deliberate:
   API. Everything documented is present.
 
 If you find any other divergence, that is a bug — please
-[open an issue](https://github.com/Damin3927/tinyver/issues) with the input.
+[open an issue](https://github.com/Damin3927/slimsemver/issues) with the input.
 
 ## Security
 
@@ -137,5 +137,5 @@ used at runtime.
 MIT © [Damin3927](https://github.com/Damin3927)
 
 `semver` is a separate project by GitHub/npm, used here as a devDependency for
-differential testing only. `tinyver` is an independent implementation and is
+differential testing only. `slimsemver` is an independent implementation and is
 not affiliated with or endorsed by it.

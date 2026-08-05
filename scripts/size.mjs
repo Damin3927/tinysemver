@@ -54,7 +54,7 @@ function walk(dir, out = []) {
 const kb = (n) => `${(n / 1024).toFixed(1)} KB`;
 
 const ENTRIES = {
-  "everything (import * from 'tinyver')": join(esm, "index.js"),
+  "everything (import * from 'slimsemver')": join(esm, "index.js"),
   "satisfies": join(esm, "shims", "functions", "satisfies.js"),
   "gt / lt / compare": join(esm, "shims", "functions", "gt.js"),
   "valid / parse": join(esm, "shims", "functions", "parse.js"),
@@ -63,7 +63,7 @@ const ENTRIES = {
   "subset": join(esm, "shims", "ranges", "subset.js"),
 };
 
-console.log("tinyver — shipped bytes by entry point (gzip, tree-shaken closure)\n");
+console.log("slimsemver — shipped bytes by entry point (gzip, tree-shaken closure)\n");
 const rows = [];
 for (const [label, entry] of Object.entries(ENTRIES)) {
   const files = closure(entry);

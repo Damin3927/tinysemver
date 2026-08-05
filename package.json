@@ -1,7 +1,7 @@
 {
-  "name": "tinyver",
+  "name": "slimsemver",
   "version": "1.0.0",
-  "description": "A tiny, zero-dependency, ESM-first drop-in replacement for semver. Same API, same semantics, a third of the size.",
+  "description": "A zero-dependency, ESM-first drop-in replacement for semver. Same API, same semantics, a fraction of the size, and linear where semver is quadratic.",
   "keywords": [
     "semver",
     "semantic",
@@ -9,16 +9,16 @@
     "versioning",
     "range",
     "satisfies",
-    "tiny",
+    "slim",
     "esm",
     "zero-dependency",
     "tree-shakeable"
   ],
-  "homepage": "https://github.com/Damin3927/tinyver#readme",
-  "bugs": "https://github.com/Damin3927/tinyver/issues",
+  "homepage": "https://github.com/Damin3927/slimsemver#readme",
+  "bugs": "https://github.com/Damin3927/slimsemver/issues",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Damin3927/tinyver.git"
+    "url": "git+https://github.com/Damin3927/slimsemver.git"
   },
   "license": "MIT",
   "author": "Damin3927",

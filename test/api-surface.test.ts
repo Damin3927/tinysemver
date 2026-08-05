@@ -38,7 +38,7 @@ test("exports have the same kind and arity", () => {
     const a = (semver as unknown as Record<string, unknown>)[name];
     const b = (tiny as unknown as Record<string, unknown>)[name];
     if (typeof a !== typeof b) {
-      problems.push(`${name}: semver is ${typeof a}, tinyver is ${typeof b}`);
+      problems.push(`${name}: semver is ${typeof a}, slimsemver is ${typeof b}`);
       continue;
     }
     if (typeof a === "function" && typeof b === "function") {
