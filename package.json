@@ -1,6 +1,6 @@
 {
   "name": "slimsemver",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A zero-dependency, ESM-first drop-in replacement for semver. Same API, same semantics, a fraction of the size, and linear where semver is quadratic.",
   "keywords": [
     "semver",
@@ -78,6 +78,7 @@
   "devDependencies": {
     "@types/node": "26.1.2",
     "@types/semver": "7.7.1",
+    "esbuild": "^0.27.2",
     "semver": "7.8.5",
     "typescript": "^7.0.2"
   },

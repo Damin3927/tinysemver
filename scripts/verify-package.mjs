@@ -7,7 +7,7 @@
  * inspected in CI, and the build fails on anything unexpected.
  */
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 
 const pkg = JSON.parse(readFileSync("package.json", "utf8"));
 
@@ -78,6 +78,41 @@ const required = [
 ];
 for (const f of required) {
   if (!set.has(f)) fail(`missing required file: ${f}`);
+}
+
+// Shipping two module trees plus the deep subpaths costs real bytes, and an
+// unminified build once made this package 44 KB *larger* on disk than the one
+// it replaces — which quietly invalidates the pitch for anyone who installs
+// without a bundler. That was found by measuring, so CI measures it.
+const semverRoot = "node_modules/semver";
+let semverBytes = null;
+try {
+  const walk = (dir, acc = []) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const p = `${dir}/${e.name}`;
+      if (e.isDirectory()) walk(p, acc);
+      else acc.push(p);
+    }
+    return acc;
+  };
+  semverBytes = walk(semverRoot).reduce((a, f) => a + statSync(f).size, 0);
+} catch {
+  /* semver is a devDependency; skip the comparison if it is absent */
+}
+
+if (semverBytes !== null) {
+  const ratio = packed.unpackedSize / semverBytes;
+  const pct = ((ratio - 1) * 100).toFixed(1);
+  console.log(
+    `on disk: ${(packed.unpackedSize / 1024).toFixed(1)} KB vs semver's ${(semverBytes / 1024).toFixed(1)} KB (${pct > 0 ? "+" : ""}${pct}%)`,
+  );
+  // Parity is the bar. Being meaningfully larger than the package we ask people
+  // to replace is a regression even when the bundled size still wins.
+  if (ratio > 1.1) {
+    fail(
+      `unpacked size is ${pct}% larger than semver — the drop-in pitch does not survive that for consumers who do not bundle`,
+    );
+  }
 }
 
 console.log(`tarball: ${files.length} files, ${(packed.size / 1024).toFixed(1)} KB packed, ${(packed.unpackedSize / 1024).toFixed(1)} KB unpacked`);

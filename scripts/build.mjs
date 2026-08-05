@@ -1,7 +1,9 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { transformSync } from "esbuild";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const dist = join(root, "dist");
@@ -192,4 +194,54 @@ writeFileSync(
 generateShims("esm");
 generateShims("cjs");
 
-console.log("build: dist/esm + dist/cjs + subpath shims");
+/**
+ * Minify each emitted file in place — deliberately *not* bundling.
+ *
+ * Shipping both an ESM and a CJS tree costs roughly 106 KB unminified, which is
+ * more on disk than the single CJS tree `semver` ships. Minifying brings the
+ * package below it, so the size win holds for consumers that install without a
+ * bundler as well as for those that tree-shake.
+ *
+ * Per-file, because bundling would collapse the module graph and destroy the
+ * tree-shaking that makes importing one function cheap.
+ */
+function minifyTree(format) {
+  const dir = join(dist, format);
+  const files = [];
+  const walk = (d) => {
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      const p = join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (p.endsWith(".js")) files.push(p);
+    }
+  };
+  walk(dir);
+
+  let before = 0;
+  let after = 0;
+  for (const file of files) {
+    const src = readFileSync(file, "utf8");
+    before += src.length;
+    const { code } = transformSync(src, {
+      minify: true,
+      format: format === "esm" ? "esm" : "cjs",
+      target: "es2022",
+      // Keeps `fn.length` intact, which the API-parity test compares against
+      // node-semver, and keeps class names in stack traces.
+      keepNames: true,
+      legalComments: "none",
+    });
+    writeFileSync(file, code);
+    after += code.length;
+  }
+  return { files: files.length, before, after };
+}
+
+const kb = (n) => `${(n / 1024).toFixed(1)}KB`;
+const esm = minifyTree("esm");
+const cjs = minifyTree("cjs");
+
+console.log(
+  `build: dist/esm + dist/cjs + subpath shims\n` +
+    `minify: ${esm.files + cjs.files} files, ${kb(esm.before + cjs.before)} -> ${kb(esm.after + cjs.after)}`,
+);
