@@ -27,9 +27,15 @@ the `<0.0.0-0` null set, prerelease precedence, `coerce` with `rtl`, and the
 it. It is also CommonJS-only, ships no `exports` field, cannot be tree-shaken,
 and costs 24.6 KB gzipped even if all you wanted was `satisfies`.
 
-If you are writing a bundler plugin, an edge function, a browser-side version
-check, or a CLI where startup time is visible, that is more than you meant to
+If you bundle — an edge function, a browser-side version check, a Vite or
+Rollup plugin, a CLI compiled with esbuild — that is more than you meant to
 pay. `slimsemver` is the same library with modern packaging.
+
+To be straight about it: **the size win is a bundling win.** Installed on disk
+the two packages are the same (99.0 KB here, 98.7 KB for `semver`), because
+this one ships an ESM tree, a CJS tree and the deep subpaths. If nothing in
+your pipeline tree-shakes, you are switching for the ESM support and the
+[linear range parsing](#security), not for bytes.
 
 ## What you actually ship
 
@@ -38,12 +44,12 @@ of what you import, not the size of the package.
 
 | you import | gzip | vs `semver` |
 | --- | --- | --- |
-| the whole namespace | **11.0 KB** | 2.2× smaller |
-| `satisfies` | **10.5 KB** | 2.3× smaller |
-| `gt` / `lt` / `compare` | **4.7 KB** | 5.2× smaller |
-| `valid` / `parse` | **4.7 KB** | 5.2× smaller |
-| `coerce` | **4.7 KB** | 5.2× smaller |
-| `SemVer` class | **3.2 KB** | 7.7× smaller |
+| the whole namespace | **10.1 KB** | 2.4× smaller |
+| `satisfies` | **9.2 KB** | 2.7× smaller |
+| `gt` / `lt` / `compare` | **4.5 KB** | 5.5× smaller |
+| `valid` / `parse` | **4.5 KB** | 5.5× smaller |
+| `coerce` | **4.5 KB** | 5.5× smaller |
+| `SemVer` class | **3.0 KB** | 8.2× smaller |
 | `semver` (whole package, cannot tree-shake) | 24.6 KB | — |
 
 Reproduce with `npm run size`.

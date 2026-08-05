@@ -50,9 +50,11 @@ retagged action cannot silently enter the release path. Dependabot keeps the
 pins current. Workflows declare `contents: read` and opt into more only where
 required, and check out with `persist-credentials: false`.
 
-**The toolchain is deliberately small.** Building and testing needs only
-TypeScript and Node's built-in test runner. `node-semver` is a devDependency
-used solely as the differential oracle and never ships.
+**The toolchain is deliberately small.** Building needs TypeScript and esbuild
+(used only to minify the emitted files in place — never to bundle, which would
+destroy tree-shaking). Testing needs nothing beyond Node's built-in test runner.
+`node-semver` is a devDependency used solely as the differential oracle and
+never ships.
 
 **Denial of service is treated as a bug, and the claim is tested.**
 `test/redos.test.ts` runs pathological input — 50,000-character whitespace and
